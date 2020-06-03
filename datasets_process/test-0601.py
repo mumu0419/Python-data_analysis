@@ -11,8 +11,6 @@ plt.rcParams['axes.unicode_minus'] = False
 
 
 cur_dir = 'D:\wsm\datasets\\'
-
-# json file
 json_dir = os.path.join(cur_dir, 'self_annotation')  # traffic #写入文件，将另一个文件夹的标注信息写到这个里面
 txt_dir = os.path.join(cur_dir, 'txt_out')  # object #输出文件夹
 pic_dir = os.path.join(cur_dir, 'pic_save')
@@ -34,6 +32,9 @@ aera_deng = []
 aera_biao = []
 n = 11
 
+'''
+## 边框信息获取及输出
+'''
 for i in range(len(data_t)):
     label_t = data_t[i]['labels']  # label_t是第i个图片里的labels组成的列表
 
@@ -65,34 +66,38 @@ for i in range(len(data_t)):
         #t_txt.write(annotation)
         t_txt.write('\n')
 t_txt.close()
-
+'''
+建空列表
+'''
 def new(size):
     newlist = []
     for i in range(0, size):
         newlist.append([])
     return newlist
-
+'''
+## 面积统计及画图
+'''
 Area = [area_gan,aera_deng,aera_biao]
 print('%d交通标志'%len(aera_biao),'%d杆'%len(area_gan),'%d灯'%len(aera_deng))
 print('***************************')
-for i in Area:
-    if len(i) == len(area_gan):
+for area in Area:
+    if len(area) == len(area_gan):
         name = '杆'
-    elif len(i)==len(aera_deng):
+    elif len(area)==len(aera_deng):
         name = '红绿灯'
     else:
         name = '交通标志'
-    i = np.rint(i)
-    a_mean = int(np.mean(i))
-    a_var = np.rint(np.var(i))
-    a_std = np.rint(np.std(i))
-    a_max = np.rint(np.max(i))
-    a_min = np.rint(np.min(i))
+    area = np.rint(area)
+    a_mean = int(np.mean(area))
+    a_var = np.rint(np.var(area))
+    a_std = np.rint(np.std(area))
+    a_max = np.rint(np.max(area))
+    a_min = np.rint(np.min(area))
     d_value = a_max-a_min
-    collection_num = Counter(i)
+    collection_num = Counter(area)
     most_n = collection_num.most_common(10)
 
-    print(len(i))
+    print(len(area))
     print("平均值为：%f" % a_mean)
     print("方差为：%f" % a_var)
     print("标准差为:%f" % a_std)
@@ -100,39 +105,29 @@ for i in Area:
     print("最大值是：", a_max)
     # print('最多的面积是：',most_n)
     #print(collection_num)
-    i.sort()
-    i = i.tolist()
-    # print(i)
 
+    '''
+    按面积等差分段
+    '''
+    area.sort()
+    area = area.tolist()
     x =np.rint(np.linspace(a_min,a_max,num=n))
     x = x.tolist()
     print(x)
     a=0
     list_1 =new(n-1)#创建一个包含n-1个空列表的列表
-    for j in range(len(i)):
-        if i[j] <= x[a+1] :
-            list_1[a].append(i[j])
+    for j in range(len(area)):
+        if area[j] <= x[a+1] :
+            list_1[a].append(area[j])
             #print(len(list_1))
-        elif i[j] <= x[a+2] :
-            list_1[a+1].append(i[j])
+        elif area[j] <= x[a+2] :
             a = a+1
+            list_1[a].append(area[j])
         else:
             a =a+ 2
-            list_1[a].append(i[j])
-
-
-
-
+            list_1[a].append(area[j])
     print(list_1[9])
     print(len(list_1))
-
-
-
-
-
-    #按个数分段
-
-
 
     print('**************************')
 
@@ -150,10 +145,13 @@ for i in Area:
     print(range_list)
     print(num_list)
 
+    '''
+        画图
+    '''
     xValue = range_list
     yValue = num_list
     titile_name = name
-    label = name+'：'+str(len(i))
+    label = name+'：'+str(len(area))
     pic_name = name+ '-面积等差分段'
     plt.title(titile_name)
     plt.tick_params(axis='x', labelsize=8,rotation=-15)
@@ -163,7 +161,6 @@ for i in Area:
     plt.legend()
     for a,b in zip(range_list,num_list):
         plt.text(a,b+0.5,'%s'%b,ha='center',fontweight='bold')
-
     pic_path = os.path.join(pic_dir,pic_name)
     plt.savefig(pic_path, dpi=300)
     plt.show()
